@@ -39,13 +39,10 @@ export default function LoginPage() {
         {/* Logo / Header */}
         <div className="space-y-3 text-center">
           <div className="flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-navy-deep to-primary-container text-2xl shadow-lg">
-              🏐
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-lcv.png" alt="Liga Catarinense de Voleibol" className="h-24 w-auto" />
           </div>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-brand-orange-deep">LCV Arbitragem</p>
-          <h1 className="font-headline text-2xl font-extrabold tracking-tight text-primary">Liga Catarinense de Voleibol</h1>
-          <p className="text-sm text-on-surface-variant">Sistema de Gestão de Árbitros</p>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-brand-orange-deep">Sistema de Gestão de Árbitros</p>
         </div>
 
         <Card className="border-outline-variant/10 shadow-editorial">

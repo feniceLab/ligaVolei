@@ -13,10 +13,13 @@ export default async function JogosPage() {
   ])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Jogos</h1>
-        <p className="text-muted-foreground">Gerencie os jogos das competições</p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-orange-deep">Agenda</p>
+          <h1 className="mt-1 font-headline text-3xl font-extrabold tracking-tight text-primary">Jogos</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">Gerencie os jogos das competições</p>
+        </div>
       </div>
       <JogosClient jogos={jogos ?? []} competicoes={competicoes ?? []} />
     </div>

@@ -9,10 +9,13 @@ export default async function RelatoriosPage() {
     .order('data_inicio', { ascending: false })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Relatórios Financeiros</h1>
-        <p className="text-muted-foreground">Total a pagar por competição e período</p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-orange-deep">Financeiro</p>
+          <h1 className="mt-1 font-headline text-3xl font-extrabold tracking-tight text-primary">Relatórios Financeiros</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">Total a pagar por competição e período</p>
+        </div>
       </div>
       <RelatoriosClient competicoes={competicoes ?? []} />
     </div>

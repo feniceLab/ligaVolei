@@ -6,8 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trophy } from 'lucide-react'
@@ -66,45 +64,68 @@ export default function CompeticoesClient({ competicoes }: { competicoes: Compet
   return (
     <>
       <div className="flex justify-end">
-        <Button onClick={abrirNovo}><Plus className="mr-2 h-4 w-4" /> Nova Competição</Button>
+        <button
+          onClick={abrirNovo}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-navy-deep to-primary-container px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4" /> Nova Competição
+        </button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {competicoes.map((c) => (
-          <Card key={c.id} className={!c.ativo ? 'opacity-60' : ''}>
-            <CardContent className="pt-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-yellow-500 shrink-0" />
-                  <p className="font-medium leading-tight">{c.nome}</p>
+      <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+        <div className="flex items-center justify-between border-b border-outline-variant/10 px-6 py-4">
+          <h2 className="font-headline text-lg font-bold text-primary">Competições Cadastradas</h2>
+          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{competicoes.length}</span>
+        </div>
+        <div className="p-4 sm:p-6">
+          {competicoes.length === 0 ? (
+            <p className="py-8 text-center text-sm text-on-surface-variant">Nenhuma competição cadastrada.</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {competicoes.map((c) => (
+                <div
+                  key={c.id}
+                  className={`rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high ${!c.ativo ? 'opacity-60' : ''}`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 shrink-0 text-brand-orange-deep" />
+                        <p className="font-bold leading-tight text-on-surface">{c.nome}</p>
+                      </div>
+                      <span
+                        className={
+                          c.ativo
+                            ? 'shrink-0 rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700'
+                            : 'shrink-0 rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant'
+                        }
+                      >
+                        {c.ativo ? 'Ativa' : 'Encerrada'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 text-xs text-on-surface-variant">
+                      <span>{c.categoria}</span>
+                      <span>·</span>
+                      <span>Temporada {c.temporada}</span>
+                    </div>
+                    <p className="text-xs text-on-surface-variant">
+                      {new Date(c.data_inicio + 'T00:00:00').toLocaleDateString('pt-BR')} até{' '}
+                      {new Date(c.data_fim + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(c)}>
+                        <Pencil className="h-3 w-3 mr-1" /> Editar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => toggleAtivo(c)}>
+                        {c.ativo ? 'Desativar' : 'Ativar'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Badge variant={c.ativo ? 'default' : 'outline'} className="shrink-0">
-                  {c.ativo ? 'Ativa' : 'Encerrada'}
-                </Badge>
-              </div>
-              <div className="flex gap-2 text-xs text-muted-foreground">
-                <span>{c.categoria}</span>
-                <span>·</span>
-                <span>Temporada {c.temporada}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {new Date(c.data_inicio + 'T00:00:00').toLocaleDateString('pt-BR')} até{' '}
-                {new Date(c.data_fim + 'T00:00:00').toLocaleDateString('pt-BR')}
-              </p>
-              <div className="flex gap-2 pt-1">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(c)}>
-                  <Pencil className="h-3 w-3 mr-1" /> Editar
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleAtivo(c)}>
-                  {c.ativo ? 'Desativar' : 'Ativar'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {competicoes.length === 0 && (
-          <p className="text-muted-foreground col-span-2 text-sm py-8 text-center">Nenhuma competição cadastrada.</p>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

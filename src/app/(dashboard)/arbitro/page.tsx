@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { CalendarDays, CheckCircle2, Clock } from 'lucide-react'
 import type { Escalacao, Jogo, Competicao } from '@/types'
@@ -45,77 +43,76 @@ export default async function ArbitroDashboard() {
   const jogosSemResposta = proximosJogos?.filter(j => !dispMap.has(j.id)) ?? []
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Olá, {profile?.nome?.split(' ')[0]} 👋</h1>
-        <p className="text-muted-foreground">Painel do árbitro</p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-orange-deep">Meu Painel</p>
+          <h1 className="mt-1 font-headline text-3xl font-extrabold tracking-tight text-primary">Olá, {profile?.nome?.split(' ')[0]} 👋</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">Painel do árbitro</p>
+        </div>
       </div>
 
       {jogosSemResposta.length > 0 && (
-        <Card className="border-yellow-500/50 bg-yellow-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2 text-yellow-400">
-              <Clock className="h-4 w-4" />
-              {jogosSemResposta.length} jogo(s) aguardando sua disponibilidade
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/arbitro/calendario" className="text-sm text-primary underline underline-offset-4">
-              Informar disponibilidade →
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-brand-orange/30 bg-brand-orange/10 p-6 shadow-editorial">
+          <p className="flex items-center gap-2 text-sm font-bold text-brand-orange-deep">
+            <Clock className="h-4 w-4" />
+            {jogosSemResposta.length} jogo(s) aguardando sua disponibilidade
+          </p>
+          <Link href="/arbitro/calendario" className="mt-3 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Informar disponibilidade →
+          </Link>
+        </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Próximos Jogos</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{proximosJogos?.length ?? 0}</div>
-            <p className="text-xs text-muted-foreground">agendados a partir de hoje</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Próximos Jogos</p>
+            <span className="rounded-xl bg-surface-container-high p-2 text-primary">
+              <CalendarDays size={18} />
+            </span>
+          </div>
+          <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{proximosJogos?.length ?? 0}</p>
+          <p className="mt-1 text-xs text-on-surface-variant">agendados a partir de hoje</p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Minhas Escalações</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{minhasEscalacoes?.length ?? 0}</div>
-            <p className="text-xs text-muted-foreground">jogos confirmados</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Minhas Escalações</p>
+            <span className="rounded-xl bg-surface-container-high p-2 text-primary">
+              <CheckCircle2 size={18} />
+            </span>
+          </div>
+          <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{minhasEscalacoes?.length ?? 0}</p>
+          <p className="mt-1 text-xs text-on-surface-variant">jogos confirmados</p>
+        </div>
       </div>
 
       {/* Próximas escalações */}
       {minhasEscalacoes && minhasEscalacoes.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Minhas Próximas Escalações</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+          <div className="border-b border-outline-variant/10 px-6 py-4">
+            <h2 className="font-headline text-lg font-bold text-primary">Minhas Próximas Escalações</h2>
+          </div>
+          <div className="space-y-3 p-4 sm:p-6">
             {(minhasEscalacoes as EscalacaoComJogo[]).map((esc) => {
               const jogo = esc.jogo
               if (!jogo) return null
               return (
-                <div key={esc.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{jogo.mandante} × {jogo.visitante}</p>
-                    <p className="text-xs text-muted-foreground">
+                <div key={esc.id} className="flex items-center justify-between gap-4 rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high">
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate font-bold text-on-surface">{jogo.mandante} <span className="font-normal text-on-surface-variant">×</span> {jogo.visitante}</p>
+                    <p className="text-xs text-on-surface-variant">
                       {new Date(jogo.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {jogo.horario?.slice(0, 5)} — {jogo.local}
                     </p>
-                    <p className="text-xs text-muted-foreground">{jogo.competicao?.nome}</p>
+                    <p className="text-xs font-medium text-on-surface-variant/80">{jogo.competicao?.nome}</p>
                   </div>
-                  <Badge variant="default" className="bg-green-600 shrink-0">Confirmado</Badge>
+                  <span className="shrink-0 rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700">Confirmado</span>
                 </div>
               )
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   )

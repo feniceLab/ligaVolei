@@ -17,8 +17,24 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://liga.fenicelab.com.br"),
   title: "Liga Catarinense de Voleibol — Gestão de Árbitros",
   description: "Sistema de gerenciamento de árbitros da Liga Catarinense de Voleibol",
+  openGraph: {
+    title: "Liga Catarinense de Voleibol — Gestão de Árbitros",
+    description: "Sistema de gerenciamento de árbitros da Liga Catarinense de Voleibol",
+    url: "https://liga.fenicelab.com.br",
+    siteName: "LCV Arbitragem",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Liga Catarinense de Voleibol" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Liga Catarinense de Voleibol — Gestão de Árbitros",
+    description: "Sistema de gerenciamento de árbitros da Liga Catarinense de Voleibol",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

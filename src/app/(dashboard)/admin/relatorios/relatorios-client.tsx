@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -83,7 +82,7 @@ export default function RelatoriosClient({ competicoes }: { competicoes: Competi
   const totalGeral = linhas.reduce((sum, l) => sum + l.total, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Cabeçalho visível apenas na impressão */}
       <div className="hidden print:block mb-6">
         <h1 className="text-xl font-bold">Liga Catarinense de Voleibol</h1>
@@ -97,8 +96,11 @@ export default function RelatoriosClient({ competicoes }: { competicoes: Competi
       </div>
 
       {/* Filtros */}
-      <Card className="print:hidden">
-        <CardContent className="pt-4">
+      <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial print:hidden">
+        <div className="border-b border-outline-variant/10 px-6 py-4">
+          <h2 className="font-headline text-lg font-bold text-primary">Filtros</h2>
+        </div>
+        <div className="p-4 sm:p-6">
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2 md:col-span-2">
               <Label>Competição *</Label>
@@ -132,53 +134,44 @@ export default function RelatoriosClient({ competicoes }: { competicoes: Competi
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Resultado */}
       {buscado && (
         <>
           {linhas.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">
+            <p className="py-8 text-center text-sm text-on-surface-variant">
               Nenhuma escalação encontrada para este filtro.
             </p>
           ) : (
             <>
               {/* Resumo */}
               <div className="grid gap-4 md:grid-cols-3 print:hidden">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total de Árbitros</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{linhas.length}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total de Jogos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{linhas.reduce((s, l) => s + l.jogos, 0)}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-500" /> Total a Pagar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-green-400">
-                      R$ {totalGeral.toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
+                  <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total de Árbitros</p>
+                  <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{linhas.length}</p>
+                </div>
+                <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
+                  <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total de Jogos</p>
+                  <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{linhas.reduce((s, l) => s + l.jogos, 0)}</p>
+                </div>
+                <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    <DollarSign className="h-4 w-4 text-brand-orange-deep" /> Total a Pagar
+                  </p>
+                  <p className="mt-4 font-headline text-3xl font-extrabold tracking-tight text-brand-orange-deep">
+                    R$ {totalGeral.toFixed(2)}
+                  </p>
+                </div>
               </div>
 
               {/* Tabela */}
-              <Card>
-                <CardContent className="pt-4">
+              <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+                <div className="border-b border-outline-variant/10 px-6 py-4">
+                  <h2 className="font-headline text-lg font-bold text-primary">Detalhamento por Árbitro</h2>
+                </div>
+                <div className="p-4 sm:p-6">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -198,21 +191,21 @@ export default function RelatoriosClient({ competicoes }: { competicoes: Competi
                           </TableCell>
                           <TableCell className="text-center">{l.jogos}</TableCell>
                           <TableCell className="text-right">R$ {l.valorPorJogo.toFixed(2)}</TableCell>
-                          <TableCell className="text-right font-semibold text-green-400">
+                          <TableCell className="text-right font-semibold text-brand-orange-deep">
                             R$ {l.total.toFixed(2)}
                           </TableCell>
                         </TableRow>
                       ))}
-                      <TableRow className="border-t-2 bg-accent/30">
+                      <TableRow className="border-t-2 bg-surface-container-high/40">
                         <TableCell colSpan={4} className="font-bold">TOTAL GERAL</TableCell>
-                        <TableCell className="text-right font-bold text-green-400 text-lg">
+                        <TableCell className="text-right font-bold text-brand-orange-deep text-lg">
                           R$ {totalGeral.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </>
           )}
         </>

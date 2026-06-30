@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { CheckCircle2, XCircle, Clock, MapPin, Trophy } from 'lucide-react'
 
@@ -60,8 +58,8 @@ export default function CalendarioClient({ jogos, disponibilidades, escalacoes, 
 
   if (jogos.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">Nenhum jogo agendado no momento.</p>
+      <div className="py-10 text-center text-sm text-on-surface-variant">
+        Nenhum jogo agendado no momento.
       </div>
     )
   }
@@ -69,81 +67,98 @@ export default function CalendarioClient({ jogos, disponibilidades, escalacoes, 
   return (
     <div className="space-y-6">
       {/* Legenda */}
-      <div className="flex flex-wrap gap-3 text-xs">
-        <span className="flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Disponível</span>
-        <span className="flex items-center gap-1"><XCircle className="h-3.5 w-3.5 text-red-500" /> Indisponível</span>
-        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-yellow-500" /> Aguardando resposta</span>
-        <span className="flex items-center gap-1"><Badge className="h-4 bg-blue-600 text-[10px]">Escalado</Badge> Você foi escalado</span>
+      <div className="flex flex-wrap gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest px-4 py-3 text-xs text-on-surface-variant shadow-editorial">
+        <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> Disponível</span>
+        <span className="flex items-center gap-1.5"><XCircle className="h-3.5 w-3.5 text-brand-orange-deep" /> Indisponível</span>
+        <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand-orange-deep" /> Aguardando resposta</span>
+        <span className="flex items-center gap-1.5"><Badge className="h-4 bg-blue-600 text-[10px]">Escalado</Badge> Você foi escalado</span>
       </div>
 
       {Array.from(jogosPorData.entries()).map(([data, jogosNoDia]) => (
         <div key={data}>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-on-surface-variant">
             {new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {jogosNoDia.map((jogo) => {
               const disp = dispState.get(jogo.id)
               const escalado = escalacoesSet.has(jogo.id)
               const isLoading = loading === jogo.id
 
               return (
-                <Card key={jogo.id} className={
-                  escalado ? 'border-blue-500/40 bg-blue-500/5' :
-                  disp === true ? 'border-green-500/40 bg-green-500/5' :
-                  disp === false ? 'border-red-500/20 opacity-70' : ''
-                }>
-                  <CardContent className="pt-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1 min-w-0">
-                        <p className="font-medium text-sm">{jogo.mandante} × {jogo.visitante}</p>
-                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          <span>{jogo.horario?.slice(0, 5)}</span>
-                          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{jogo.local}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Trophy className="h-3 w-3" /> {jogo.competicao?.nome}
-                        </p>
+                <div
+                  key={jogo.id}
+                  className={`rounded-2xl border p-4 shadow-editorial ${
+                    escalado
+                      ? 'border-blue-500/30 bg-blue-500/5'
+                      : disp === false
+                        ? 'border-outline-variant/10 bg-surface-container-lowest opacity-80'
+                        : 'border-outline-variant/10 bg-surface-container-lowest'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="truncate font-bold text-on-surface">
+                        {jogo.mandante} <span className="font-normal text-on-surface-variant">×</span> {jogo.visitante}
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs text-on-surface-variant">
+                        <span>{jogo.horario?.slice(0, 5)}</span>
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{jogo.local}</span>
                       </div>
-                      <div className="shrink-0">
-                        {escalado ? (
-                          <Badge className="bg-blue-600">Escalado ✓</Badge>
-                        ) : disp === true ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : disp === false ? (
-                          <XCircle className="h-5 w-5 text-red-500" />
-                        ) : (
-                          <Clock className="h-5 w-5 text-yellow-500" />
-                        )}
-                      </div>
+                      <p className="flex items-center gap-1 text-xs font-medium text-on-surface-variant/80">
+                        <Trophy className="h-3 w-3" /> {jogo.competicao?.nome}
+                      </p>
                     </div>
+                    <div className="shrink-0">
+                      {escalado ? (
+                        <span className="rounded-full bg-blue-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700">Escalado ✓</span>
+                      ) : disp === true ? (
+                        <span className="flex items-center gap-1 rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Disponível
+                        </span>
+                      ) : disp === false ? (
+                        <span className="flex items-center gap-1 rounded-full bg-brand-orange/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-orange-deep">
+                          <XCircle className="h-3.5 w-3.5" /> Indisponível
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 rounded-full bg-brand-orange/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-orange-deep">
+                          <Clock className="h-3.5 w-3.5" /> Pendente
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                    {!escalado && (
-                      <div className="flex gap-2 mt-3">
-                        <Button
-                          size="sm"
-                          variant={disp === true ? 'default' : 'outline'}
-                          className={disp === true ? 'bg-green-600 hover:bg-green-700 flex-1' : 'flex-1'}
-                          disabled={isLoading}
-                          onClick={() => marcarDisponibilidade(jogo.id, true)}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                          Disponível
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={disp === false ? 'destructive' : 'outline'}
-                          className="flex-1"
-                          disabled={isLoading}
-                          onClick={() => marcarDisponibilidade(jogo.id, false)}
-                        >
-                          <XCircle className="h-3.5 w-3.5 mr-1" />
-                          Indisponível
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  {!escalado && (
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={isLoading}
+                        onClick={() => marcarDisponibilidade(jogo.id, true)}
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 ${
+                          disp === true
+                            ? 'bg-primary text-white'
+                            : 'border border-outline-variant/20 bg-surface text-on-surface hover:bg-surface-container-high'
+                        }`}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Disponível
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isLoading}
+                        onClick={() => marcarDisponibilidade(jogo.id, false)}
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 ${
+                          disp === false
+                            ? 'bg-brand-orange/15 text-brand-orange-deep'
+                            : 'border border-outline-variant/20 bg-surface text-on-surface hover:bg-surface-container-high'
+                        }`}
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Indisponível
+                      </button>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>

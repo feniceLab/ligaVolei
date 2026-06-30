@@ -32,15 +32,11 @@ export default function ArbitroNav({ nome }: { nome: string }) {
       <header className="sticky top-0 z-40 border-b border-outline-variant/10 bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm shadow-sm">
-              🏐
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-extrabold uppercase tracking-tight text-primary">LCV Arbitragem</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-                Portal do Árbitro
-              </p>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-lcv.png" alt="Liga Catarinense de Voleibol" className="h-10 w-auto" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+              Portal do Árbitro
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

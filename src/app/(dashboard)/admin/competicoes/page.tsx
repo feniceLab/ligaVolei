@@ -9,10 +9,13 @@ export default async function CompeticoesPage() {
     .order('data_inicio', { ascending: false })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Competições</h1>
-        <p className="text-muted-foreground">Gerencie as competições da liga</p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-orange-deep">Gestão</p>
+          <h1 className="mt-1 font-headline text-3xl font-extrabold tracking-tight text-primary">Competições</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">Gerencie as competições da liga</p>
+        </div>
       </div>
       <CompeticoesClient competicoes={competicoes ?? []} />
     </div>

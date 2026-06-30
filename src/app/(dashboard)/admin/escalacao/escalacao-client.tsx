@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Jogo, Disponibilidade } from '@/types'
@@ -89,7 +87,7 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
   }
 
   if (jogos.length === 0) {
-    return <p className="text-muted-foreground text-sm py-8 text-center">Nenhum jogo futuro encontrado.</p>
+    return <p className="py-8 text-center text-sm text-on-surface-variant">Nenhum jogo futuro encontrado.</p>
   }
 
   return (
@@ -104,46 +102,44 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
         const isOpen = expandido === jogo.id
 
         return (
-          <Card key={jogo.id}>
-            <CardHeader
-              className="cursor-pointer pb-3"
+          <div key={jogo.id} className="overflow-hidden rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+            <div
+              className="flex cursor-pointer items-start justify-between gap-2 border-b border-outline-variant/10 px-6 py-4 transition-colors hover:bg-surface-container-high"
               onClick={() => setExpandido(isOpen ? null : jogo.id)}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1">
-                  <CardTitle className="text-base">
-                    {jogo.mandante} × {jogo.visitante}
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(jogo.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {jogo.horario?.slice(0, 5)} — {jogo.local}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{jogo.competicao?.nome}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {completo
-                    ? <Badge className="bg-green-600">Completo</Badge>
-                    : <Badge variant="destructive">{vagas} vaga{vagas !== 1 ? 's' : ''}</Badge>
-                  }
-                  {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                </div>
+              <div className="space-y-1">
+                <h3 className="font-headline text-lg font-bold text-primary">
+                  {jogo.mandante} × {jogo.visitante}
+                </h3>
+                <p className="text-xs text-on-surface-variant">
+                  {new Date(jogo.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {jogo.horario?.slice(0, 5)} — {jogo.local}
+                </p>
+                <p className="text-xs font-medium text-on-surface-variant/80">{jogo.competicao?.nome}</p>
               </div>
-            </CardHeader>
+              <div className="flex items-center gap-2 shrink-0">
+                {completo
+                  ? <span className="rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700">Completo</span>
+                  : <span className="rounded-full bg-brand-orange/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-orange-deep">{vagas} vaga{vagas !== 1 ? 's' : ''}</span>
+                }
+                {isOpen ? <ChevronUp className="h-4 w-4 text-on-surface-variant" /> : <ChevronDown className="h-4 w-4 text-on-surface-variant" />}
+              </div>
+            </div>
 
             {isOpen && (
-              <CardContent className="space-y-4 pt-0">
+              <div className="space-y-4 p-4 sm:p-6">
                 {/* Escalados */}
                 {escalados.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Escalados</p>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Escalados</p>
                     <div className="space-y-1">
                       {escalados.map((esc: EscalacaoResumo) => (
-                        <div key={esc.id} className="flex items-center justify-between rounded-md bg-green-500/10 border border-green-500/20 px-3 py-2">
+                        <div key={esc.id} className="flex items-center justify-between rounded-xl border border-green-600/20 bg-green-600/10 px-3 py-2">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                            <span className="text-sm">{esc.arbitro?.nome}</span>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                            <span className="text-sm font-medium text-on-surface">{esc.arbitro?.nome}</span>
                           </div>
                           <Button
-                            size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            size="sm" variant="ghost" className="h-6 w-6 p-0 text-on-surface-variant hover:text-destructive"
                             onClick={() => removerEscalacao(esc.id, jogo.id)}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -157,15 +153,15 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                 {/* Disponíveis para escalar */}
                 {!completo && disponiveis.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Disponíveis</p>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Disponíveis</p>
                     <div className="space-y-1">
                       {disponiveis.map((a: ArbitroResumo) => (
-                        <div key={a.id} className="flex items-center justify-between rounded-md bg-accent px-3 py-2">
+                        <div key={a.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface px-3 py-2 transition-colors hover:bg-surface-container-high">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                             <div>
-                              <span className="text-sm">{a.nome}</span>
-                              {a.categoria && <span className="text-xs text-muted-foreground ml-2">({a.categoria})</span>}
+                              <span className="text-sm font-medium text-on-surface">{a.nome}</span>
+                              {a.categoria && <span className="ml-2 text-xs text-on-surface-variant">({a.categoria})</span>}
                             </div>
                           </div>
                           <Button
@@ -185,13 +181,13 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                 {/* Sem resposta - pode forçar escalação */}
                 {!completo && semResposta.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Sem resposta</p>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Sem resposta</p>
                     <div className="space-y-1">
                       {semResposta.slice(0, 5).map((a: ArbitroResumo) => (
-                        <div key={a.id} className="flex items-center justify-between rounded-md border px-3 py-2 opacity-70">
+                        <div key={a.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 px-3 py-2 opacity-70">
                           <div className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5 text-yellow-500" />
-                            <span className="text-sm">{a.nome}</span>
+                            <Clock className="h-3.5 w-3.5 text-brand-orange-deep" />
+                            <span className="text-sm font-medium text-on-surface">{a.nome}</span>
                           </div>
                           <Button size="sm" variant="ghost" onClick={() => escalar(jogo.id, a.id)}>
                             <UserPlus className="h-3 w-3 mr-1" /> Forçar
@@ -203,14 +199,14 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                 )}
 
                 {!completo && disponiveis.length === 0 && semResposta.length === 0 && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <p className="flex items-center gap-2 text-sm text-on-surface-variant">
                     <XCircle className="h-4 w-4 text-destructive" />
                     Nenhum árbitro disponível para este jogo.
                   </p>
                 )}
-              </CardContent>
+              </div>
             )}
-          </Card>
+          </div>
         )
       })}
     </div>

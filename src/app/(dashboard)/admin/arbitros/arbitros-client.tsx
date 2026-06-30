@@ -5,8 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from '@/components/ui/dialog'
@@ -84,50 +82,69 @@ export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
   return (
     <>
       <div className="flex justify-end">
-        <Button onClick={abrirNovo}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Árbitro
-        </Button>
+        <button
+          onClick={abrirNovo}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-navy-deep to-primary-container px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4" /> Novo Árbitro
+        </button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {arbitros.map((a) => (
-          <Card key={a.id} className={!a.ativo ? 'opacity-60' : ''}>
-            <CardContent className="pt-4 space-y-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium">{a.nome}</p>
-                  {a.categoria && (
-                    <Badge variant="secondary" className="text-xs mt-1">{a.categoria}</Badge>
-                  )}
+      <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+        <div className="flex items-center justify-between border-b border-outline-variant/10 px-6 py-4">
+          <h2 className="font-headline text-lg font-bold text-primary">Árbitros Cadastrados</h2>
+          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{arbitros.length}</span>
+        </div>
+        <div className="p-4 sm:p-6">
+          {arbitros.length === 0 ? (
+            <p className="py-8 text-center text-sm text-on-surface-variant">Nenhum árbitro cadastrado ainda.</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {arbitros.map((a) => (
+                <div
+                  key={a.id}
+                  className={`rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high ${!a.ativo ? 'opacity-60' : ''}`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-bold text-on-surface">{a.nome}</p>
+                        {a.categoria && (
+                          <span className="mt-1 inline-block rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">{a.categoria}</span>
+                        )}
+                      </div>
+                      <span
+                        className={
+                          a.ativo
+                            ? 'shrink-0 rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700'
+                            : 'shrink-0 rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant'
+                        }
+                      >
+                        {a.ativo ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
+                    {a.telefone && (
+                      <p className="flex items-center gap-1 text-xs text-on-surface-variant">
+                        <Phone className="h-3 w-3" /> {a.telefone}
+                      </p>
+                    )}
+                    <p className="text-sm font-bold text-brand-orange-deep">
+                      R$ {a.valor_por_jogo.toFixed(2)} / jogo
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(a)}>
+                        <Pencil className="h-3 w-3 mr-1" /> Editar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => toggleAtivo(a)}>
+                        {a.ativo ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Badge variant={a.ativo ? 'default' : 'outline'} className="shrink-0">
-                  {a.ativo ? 'Ativo' : 'Inativo'}
-                </Badge>
-              </div>
-              {a.telefone && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> {a.telefone}
-                </p>
-              )}
-              <p className="text-sm font-medium text-green-400">
-                R$ {a.valor_por_jogo.toFixed(2)} / jogo
-              </p>
-              <div className="flex gap-2 pt-1">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(a)}>
-                  <Pencil className="h-3 w-3 mr-1" /> Editar
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleAtivo(a)}>
-                  {a.ativo ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {arbitros.length === 0 && (
-          <p className="text-muted-foreground col-span-3 text-sm py-8 text-center">
-            Nenhum árbitro cadastrado ainda.
-          </p>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

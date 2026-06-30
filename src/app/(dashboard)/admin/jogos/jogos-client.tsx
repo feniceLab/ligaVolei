@@ -6,8 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
@@ -18,10 +16,10 @@ type Competicao = { id: string; nome: string; categoria: string }
 type JogoComEsc = Jogo & { competicao: Competicao | null; escalacoes: Escalacao[] }
 
 const statusColors: Record<string, string> = {
-  pendente: 'destructive',
-  escalado: 'default',
-  realizado: 'secondary',
-  cancelado: 'outline',
+  pendente: 'bg-brand-orange/15 text-brand-orange-deep',
+  escalado: 'bg-green-600/10 text-green-700',
+  realizado: 'bg-green-600/10 text-green-700',
+  cancelado: 'bg-surface-container-high text-on-surface-variant',
 }
 
 const statusLabel: Record<string, string> = {
@@ -126,48 +124,51 @@ export default function JogosClient({ jogos, competicoes }: { jogos: JogoComEsc[
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={abrirNovo}><Plus className="mr-2 h-4 w-4" /> Novo Jogo</Button>
+        <Button
+          onClick={abrirNovo}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-navy-deep to-primary-container px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4" /> Novo Jogo
+        </Button>
       </div>
 
       <div className="space-y-3">
         {jogosFiltrados.map((j: JogoComEsc) => {
           const escalados = j.escalacoes?.length ?? 0
           return (
-            <Card key={j.id}>
-              <CardContent className="pt-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <p className="font-medium">{j.mandante} <span className="text-muted-foreground">×</span> {j.visitante}</p>
-                    <p className="text-xs text-muted-foreground">{j.competicao?.nome}</p>
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(j.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {j.horario?.slice(0, 5)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> {j.local}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Badge variant={statusColors[j.status] as 'default' | 'destructive' | 'secondary' | 'outline'}>{statusLabel[j.status]}</Badge>
-                    <span className="text-xs text-muted-foreground">{escalados}/{j.arbitros_necessarios} árbitros</span>
+            <div key={j.id} className="rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <p className="font-bold text-on-surface">{j.mandante} <span className="font-normal text-on-surface-variant">×</span> {j.visitante}</p>
+                  <p className="text-xs font-medium text-on-surface-variant/80">{j.competicao?.nome}</p>
+                  <div className="flex flex-wrap gap-3 text-xs text-on-surface-variant">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(j.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {j.horario?.slice(0, 5)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {j.local}
+                    </span>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(j)}>
-                    <Pencil className="h-3 w-3 mr-1" /> Editar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => excluir(j.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${statusColors[j.status]}`}>{statusLabel[j.status]}</span>
+                  <span className="text-xs text-on-surface-variant">{escalados}/{j.arbitros_necessarios} árbitros</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(j)}>
+                  <Pencil className="h-3 w-3 mr-1" /> Editar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => excluir(j.id)}>
+                  <Trash2 className="h-3 w-3 text-destructive" />
+                </Button>
+              </div>
+            </div>
           )
         })}
         {jogosFiltrados.length === 0 && (
-          <p className="text-muted-foreground text-sm py-8 text-center">Nenhum jogo encontrado.</p>
+          <p className="py-8 text-center text-sm text-on-surface-variant">Nenhum jogo encontrado.</p>
         )}
       </div>
 

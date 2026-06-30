@@ -32,8 +32,9 @@ export default async function CalendarioPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Calendário de Jogos</h1>
-        <p className="text-muted-foreground">Informe sua disponibilidade para cada jogo</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-orange-deep">MINHA AGENDA</p>
+        <h1 className="mt-1 font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-primary">Calendário</h1>
+        <p className="mt-1 text-sm text-on-surface-variant">Informe sua disponibilidade para cada jogo</p>
       </div>
       <CalendarioClient
         jogos={jogos ?? []}

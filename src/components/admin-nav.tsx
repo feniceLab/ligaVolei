@@ -26,15 +26,11 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 function Brand() {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base shadow-sm">
-        🏐
-      </div>
-      <div className="leading-tight">
-        <h1 className="text-base font-extrabold uppercase tracking-tight text-primary">LCV Arbitragem</h1>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-          Liga Catarinense
-        </p>
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-lcv.png" alt="Liga Catarinense de Voleibol" className="h-12 w-auto" />
+      <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+        Arbitragem
+      </span>
     </div>
   )
 }
