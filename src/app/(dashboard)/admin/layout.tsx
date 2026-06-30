@@ -16,10 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/arbitro')
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-surface">
       <AdminNav nome={profile.nome} />
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-6xl">
-        {children}
+      <main className="min-h-screen lg:ml-[260px]">
+        <div className="mx-auto w-full max-w-7xl p-5 sm:p-8">
+          {children}
+        </div>
       </main>
     </div>
   )

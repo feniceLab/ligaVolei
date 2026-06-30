@@ -34,20 +34,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-surface to-surface-container-high px-4">
+      <div className="w-full max-w-md space-y-7">
         {/* Logo / Header */}
-        <div className="text-center space-y-2">
+        <div className="space-y-3 text-center">
           <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-2xl">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-navy-deep to-primary-container text-2xl shadow-lg">
               🏐
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Liga Catarinense de Voleibol</h1>
-          <p className="text-muted-foreground text-sm">Sistema de Gestão de Árbitros</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-brand-orange-deep">LCV Arbitragem</p>
+          <h1 className="font-headline text-2xl font-extrabold tracking-tight text-primary">Liga Catarinense de Voleibol</h1>
+          <p className="text-sm text-on-surface-variant">Sistema de Gestão de Árbitros</p>
         </div>
 
-        <Card>
+        <Card className="border-outline-variant/10 shadow-editorial">
           <CardHeader>
             <CardTitle>Entrar</CardTitle>
             <CardDescription>Use seu email e senha para acessar o sistema</CardDescription>

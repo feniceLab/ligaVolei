@@ -14,9 +14,9 @@ export default async function ArbitroLayout({ children }: { children: React.Reac
     .single()
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-surface">
       <ArbitroNav nome={profile?.nome ?? ''} />
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-4xl">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 pb-24 sm:px-6 sm:pb-10">
         {children}
       </main>
     </div>

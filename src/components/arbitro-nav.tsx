@@ -3,14 +3,17 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { LayoutDashboard, CalendarDays, LogOut } from 'lucide-react'
 
 const navItems = [
-  { href: '/arbitro', label: 'Início', icon: LayoutDashboard },
+  { href: '/arbitro', label: 'Início', icon: LayoutDashboard, exact: true },
   { href: '/arbitro/calendario', label: 'Calendário', icon: CalendarDays },
 ]
+
+function isActive(pathname: string, href: string, exact?: boolean) {
+  return exact ? pathname === href : pathname === href || pathname.startsWith(href + '/')
+}
 
 export default function ArbitroNav({ nome }: { nome: string }) {
   const pathname = usePathname()
@@ -24,37 +27,77 @@ export default function ArbitroNav({ nome }: { nome: string }) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-lg mr-3">🏐</span>
-            <nav className="flex items-center gap-1">
-              {navItems.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors',
-                    pathname === href
-                      ? 'bg-accent text-accent-foreground font-medium'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+    <>
+      {/* Top bar */}
+      <header className="sticky top-0 z-40 border-b border-outline-variant/10 bg-surface/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:block">{nome}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm shadow-sm">
+              🏐
+            </div>
+            <div className="leading-tight">
+              <p className="text-sm font-extrabold uppercase tracking-tight text-primary">LCV Arbitragem</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+                Portal do Árbitro
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Desktop links */}
+            <nav className="mr-2 hidden items-center gap-1 sm:flex">
+              {navItems.map(({ href, label, icon: Icon, exact }) => {
+                const active = isActive(pathname, href, exact)
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors',
+                      active
+                        ? 'bg-surface-container-lowest text-primary shadow-editorial'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                    )}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </Link>
+                )
+              })}
+            </nav>
+            <span className="hidden text-sm font-bold text-primary md:block">{nome}</span>
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Bottom bar (mobile) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/10 bg-surface-container-lowest/95 backdrop-blur-md sm:hidden">
+        <div className="flex items-stretch justify-around">
+          {navItems.map(({ href, label, icon: Icon, exact }) => {
+            const active = isActive(pathname, href, exact)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors',
+                  active ? 'text-primary' : 'text-on-surface-variant'
+                )}
+              >
+                <Icon size={20} />
+                {label}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }
