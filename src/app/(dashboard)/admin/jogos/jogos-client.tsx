@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, MapPin, Clock } from 'lucide-react'
+import { TeamBadge } from '@/components/team-badge'
 import type { Jogo, Escalacao } from '@/types'
 
 type Competicao = { id: string; nome: string; categoria: string }
@@ -139,7 +140,11 @@ export default function JogosClient({ jogos, competicoes }: { jogos: JogoComEsc[
             <div key={j.id} className="rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 min-w-0">
-                  <p className="font-bold text-on-surface">{j.mandante} <span className="font-normal text-on-surface-variant">×</span> {j.visitante}</p>
+                  <div className="flex items-center gap-2 font-bold text-on-surface">
+                    <TeamBadge name={j.mandante} size="sm" />
+                    <span className="shrink-0 font-normal text-on-surface-variant">×</span>
+                    <TeamBadge name={j.visitante} size="sm" />
+                  </div>
                   <p className="text-xs font-medium text-on-surface-variant/80">{j.competicao?.nome}</p>
                   <div className="flex flex-wrap gap-3 text-xs text-on-surface-variant">
                     <span className="flex items-center gap-1">

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CalendarDays, Users, Trophy, AlertCircle, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
+import { TeamBadge } from '@/components/team-badge'
 import type { Jogo, Competicao, Escalacao } from '@/types'
 
 type JogoDash = Jogo & { competicao: Competicao | null; escalacoes: Escalacao[] }
@@ -110,9 +111,11 @@ export default async function AdminDashboard() {
                   <Link key={jogo.id} href={`/admin/escalacao?jogo=${jogo.id}`} className="block">
                     <div className="flex items-center justify-between gap-4 rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high">
                       <div className="min-w-0 space-y-1">
-                        <p className="truncate font-bold text-on-surface">
-                          {jogo.mandante} <span className="font-normal text-on-surface-variant">×</span> {jogo.visitante}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm font-bold text-on-surface">
+                          <TeamBadge name={jogo.mandante} size="sm" />
+                          <span className="shrink-0 font-normal text-on-surface-variant">×</span>
+                          <TeamBadge name={jogo.visitante} size="sm" />
+                        </div>
                         <p className="text-xs text-on-surface-variant">
                           {new Date(jogo.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {jogo.horario?.slice(0, 5)} — {jogo.local}
                         </p>
