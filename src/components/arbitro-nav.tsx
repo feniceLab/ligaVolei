@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, CalendarDays, LogOut } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Wallet, LogOut } from 'lucide-react'
 
 const navItems = [
   { href: '/arbitro', label: 'Início', icon: LayoutDashboard, exact: true },
   { href: '/arbitro/calendario', label: 'Calendário', icon: CalendarDays },
+  { href: '/arbitro/financeiro', label: 'Financeiro', icon: Wallet },
 ]
 
 function isActive(pathname: string, href: string, exact?: boolean) {
