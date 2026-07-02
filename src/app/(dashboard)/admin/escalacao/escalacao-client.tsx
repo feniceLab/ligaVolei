@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp, TrendingUp, AlertTriangle } from 'lucide-react'
 import type { Jogo, Disponibilidade } from '@/types'
+import { scoreCor, type ScoreResult } from '@/lib/score'
 
 type ArbitroResumo = { id: string; nome: string; categoria: string | null; valor_por_jogo: number }
 type EscalacaoResumo = { id: string; status?: string; arbitro: { id: string; nome: string } | null }
@@ -16,9 +17,29 @@ interface Props {
   jogos: JogoComEscalacoes[]
   arbitros: ArbitroResumo[]
   disponibilidades: Pick<Disponibilidade, 'jogo_id' | 'arbitro_id' | 'disponivel'>[]
+  scores: Record<string, ScoreResult>
 }
 
-export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: Props) {
+export default function EscalacaoClient({ jogos, arbitros, disponibilidades, scores }: Props) {
+  const scoreDe = (id: string) => scores[id]?.score ?? 60
+  const porScore = (a: ArbitroResumo, b: ArbitroResumo) => scoreDe(b.id) - scoreDe(a.id)
+
+  function Selo({ id }: { id: string }) {
+    const s = scores[id]
+    if (!s) return null
+    return (
+      <span className="flex shrink-0 items-center gap-1">
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${scoreCor(s.score)}`} title="Score de confiabilidade">
+          <TrendingUp size={10} />{s.score}
+        </span>
+        {s.cherry && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive" title="Tende a recusar jogos de valor baixo">
+            <AlertTriangle size={10} />só jogo grande
+          </span>
+        )}
+      </span>
+    )
+  }
   const router = useRouter()
   const [expandido, setExpandido] = useState<string | null>(jogos[0]?.id ?? null)
   const [loading, setLoading] = useState<string | null>(null)
@@ -101,8 +122,8 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
         const escaladosIds = new Set(escalados.map((e: EscalacaoResumo) => e.arbitro?.id))
         const vagas = jogo.arbitros_necessarios - escalados.length
         const completo = vagas <= 0
-        const disponiveis = arbitros.filter(a => dispMap.get(jogo.id)?.has(a.id) && !escaladosIds.has(a.id))
-        const semResposta = arbitros.filter(a => !dispMap.get(jogo.id)?.has(a.id) && !indispMap.get(jogo.id)?.has(a.id) && !escaladosIds.has(a.id))
+        const disponiveis = arbitros.filter(a => dispMap.get(jogo.id)?.has(a.id) && !escaladosIds.has(a.id)).sort(porScore)
+        const semResposta = arbitros.filter(a => !dispMap.get(jogo.id)?.has(a.id) && !indispMap.get(jogo.id)?.has(a.id) && !escaladosIds.has(a.id)).sort(porScore)
         const isOpen = expandido === jogo.id
 
         return (
@@ -170,12 +191,13 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                     <div className="space-y-1">
                       {disponiveis.map((a: ArbitroResumo) => (
                         <div key={a.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface px-3 py-2 transition-colors hover:bg-surface-container-high">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                            <div>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-600" />
+                            <div className="min-w-0">
                               <span className="text-sm font-medium text-on-surface">{a.nome}</span>
                               {a.categoria && <span className="ml-2 text-xs text-on-surface-variant">({a.categoria})</span>}
                             </div>
+                            <Selo id={a.id} />
                           </div>
                           <Button
                             size="sm" variant="outline"
@@ -197,10 +219,11 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                     <p className="mb-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Sem resposta</p>
                     <div className="space-y-1">
                       {semResposta.slice(0, 5).map((a: ArbitroResumo) => (
-                        <div key={a.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 px-3 py-2 opacity-70">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5 text-brand-orange-deep" />
+                        <div key={a.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 px-3 py-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-brand-orange-deep" />
                             <span className="text-sm font-medium text-on-surface">{a.nome}</span>
+                            <Selo id={a.id} />
                           </div>
                           <Button size="sm" variant="ghost" onClick={() => escalar(jogo.id, a.id)}>
                             <UserPlus className="h-3 w-3 mr-1" /> Forçar
