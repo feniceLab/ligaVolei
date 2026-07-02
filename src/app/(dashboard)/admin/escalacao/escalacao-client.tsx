@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp 
 import type { Jogo, Disponibilidade } from '@/types'
 
 type ArbitroResumo = { id: string; nome: string; categoria: string | null; valor_por_jogo: number }
-type EscalacaoResumo = { id: string; arbitro: { id: string; nome: string } | null }
+type EscalacaoResumo = { id: string; status?: string; arbitro: { id: string; nome: string } | null }
 type JogoComEscalacoes = Jogo & { escalacoes: EscalacaoResumo[] }
 
 interface Props {
@@ -61,15 +61,19 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
       }
     }
 
-    const supabase = createClient()
-    const { error } = await supabase.from('escalacoes').insert({ jogo_id: jogoId, arbitro_id: arbitroId })
-    if (error) toast.error('Erro ao escalar: ' + error.message)
-    else {
-      const totalEscalados = (jogoAlvo?.escalacoes?.length ?? 0) + 1
-      if (jogoAlvo && totalEscalados >= jogoAlvo.arbitros_necessarios) {
-        await supabase.from('jogos').update({ status: 'escalado' }).eq('id', jogoId)
-      }
-      toast.success('Árbitro escalado!')
+    const res = await fetch('/api/escalacao/escalar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jogo_id: jogoId, arbitro_id: arbitroId }),
+    })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast.error('Erro ao escalar: ' + (d.error || res.statusText))
+    } else {
+      const d = await res.json().catch(() => ({}))
+      toast.success(d.valor != null
+        ? `Escalado! Valor: ${Number(d.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} — árbitro notificado.`
+        : 'Árbitro escalado e notificado!')
     }
     setLoading(null)
     router.refresh()
@@ -132,20 +136,29 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades }: P
                   <div>
                     <p className="mb-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Escalados</p>
                     <div className="space-y-1">
-                      {escalados.map((esc: EscalacaoResumo) => (
-                        <div key={esc.id} className="flex items-center justify-between rounded-xl border border-green-600/20 bg-green-600/10 px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                            <span className="text-sm font-medium text-on-surface">{esc.arbitro?.nome}</span>
+                      {escalados.map((esc: EscalacaoResumo) => {
+                        const st = esc.status ?? 'pendente'
+                        const badge = st === 'confirmada'
+                          ? { txt: 'Confirmou', cls: 'bg-green-600/15 text-green-700' }
+                          : st === 'recusada'
+                          ? { txt: 'Recusou', cls: 'bg-destructive/10 text-destructive' }
+                          : { txt: 'Aguardando', cls: 'bg-brand-orange/15 text-brand-orange-deep' }
+                        return (
+                          <div key={esc.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                              <span className="text-sm font-medium text-on-surface">{esc.arbitro?.nome}</span>
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badge.cls}`}>{badge.txt}</span>
+                            </div>
+                            <Button
+                              size="sm" variant="ghost" className="h-6 w-6 p-0 text-on-surface-variant hover:text-destructive"
+                              onClick={() => removerEscalacao(esc.id, jogo.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button
-                            size="sm" variant="ghost" className="h-6 w-6 p-0 text-on-surface-variant hover:text-destructive"
-                            onClick={() => removerEscalacao(esc.id, jogo.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )}

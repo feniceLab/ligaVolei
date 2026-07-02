@@ -31,7 +31,7 @@ export interface Jogo {
   local: string
   mandante: string
   visitante: string
-  arbitros_necessarios: 1 | 2
+  arbitros_necessarios: number
   status: 'pendente' | 'escalado' | 'realizado' | 'cancelado'
   criado_em: string
   escalacoes?: Escalacao[]
@@ -47,12 +47,20 @@ export interface Disponibilidade {
   arbitro?: Profile
 }
 
+export type EscalacaoStatus = 'pendente' | 'confirmada' | 'recusada' | 'cancelada'
+
 export interface Escalacao {
   id: string
   jogo_id: string
   arbitro_id: string
   escalado_em: string
   notificado: boolean
+  status: EscalacaoStatus
+  respondido_em: string | null
+  motivo_recusa: string | null
+  valor: number | null
+  pago: boolean
+  pago_em: string | null
   jogo?: Jogo
   arbitro?: Profile
 }

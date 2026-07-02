@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { CalendarDays, CheckCircle2, Clock } from 'lucide-react'
-import type { Escalacao, Jogo, Competicao } from '@/types'
-
-type EscalacaoComJogo = Escalacao & { jogo: (Jogo & { competicao: Competicao | null }) | null }
+import ArbitroEscalacoes from '@/components/arbitro-escalacoes'
 
 export default async function ArbitroDashboard() {
   const supabase = await createClient()
@@ -29,11 +27,10 @@ export default async function ArbitroDashboard() {
       .order('data', { ascending: true })
       .limit(5),
     supabase.from('escalacoes')
-      .select('*, jogo:jogos(data, horario, local, mandante, visitante, competicao:competicoes(nome))')
+      .select('id, status, valor, motivo_recusa, jogo:jogos(data, horario, local, mandante, visitante, competicao:competicoes(nome))')
       .eq('arbitro_id', profile?.id)
-      .gte('jogo.data', hoje)
       .order('escalado_em', { ascending: false })
-      .limit(5),
+      .limit(30),
     supabase.from('disponibilidades')
       .select('jogo_id, disponivel')
       .eq('arbitro_id', profile?.id),
@@ -41,6 +38,10 @@ export default async function ArbitroDashboard() {
 
   const dispMap = new Map(minhasDisponibilidades?.map(d => [d.jogo_id, d.disponivel]) ?? [])
   const jogosSemResposta = proximosJogos?.filter(j => !dispMap.has(j.id)) ?? []
+
+  const escList = (minhasEscalacoes ?? []) as unknown as Parameters<typeof ArbitroEscalacoes>[0]['escalacoes']
+  const confirmadas = escList.filter(e => e.status === 'confirmada').length
+  const pendentesResposta = escList.filter(e => e.status === 'pendente').length
 
   return (
     <div className="space-y-8">
@@ -83,37 +84,21 @@ export default async function ArbitroDashboard() {
               <CheckCircle2 size={18} />
             </span>
           </div>
-          <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{minhasEscalacoes?.length ?? 0}</p>
-          <p className="mt-1 text-xs text-on-surface-variant">jogos confirmados</p>
+          <p className="mt-4 font-headline text-4xl font-extrabold tracking-tight text-primary">{confirmadas}</p>
+          <p className="mt-1 text-xs text-on-surface-variant">jogos confirmados{pendentesResposta > 0 ? ` · ${pendentesResposta} aguardando resposta` : ''}</p>
         </div>
       </div>
 
-      {/* Próximas escalações */}
-      {minhasEscalacoes && minhasEscalacoes.length > 0 && (
-        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
-          <div className="border-b border-outline-variant/10 px-6 py-4">
-            <h2 className="font-headline text-lg font-bold text-primary">Minhas Próximas Escalações</h2>
-          </div>
-          <div className="space-y-3 p-4 sm:p-6">
-            {(minhasEscalacoes as EscalacaoComJogo[]).map((esc) => {
-              const jogo = esc.jogo
-              if (!jogo) return null
-              return (
-                <div key={esc.id} className="flex items-center justify-between gap-4 rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high">
-                  <div className="min-w-0 space-y-1">
-                    <p className="truncate font-bold text-on-surface">{jogo.mandante} <span className="font-normal text-on-surface-variant">×</span> {jogo.visitante}</p>
-                    <p className="text-xs text-on-surface-variant">
-                      {new Date(jogo.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {jogo.horario?.slice(0, 5)} — {jogo.local}
-                    </p>
-                    <p className="text-xs font-medium text-on-surface-variant/80">{jogo.competicao?.nome}</p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-green-600/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-700">Confirmado</span>
-                </div>
-              )
-            })}
-          </div>
+      {/* Minhas escalações — confirmar / recusar */}
+      <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest shadow-editorial">
+        <div className="border-b border-outline-variant/10 px-6 py-4">
+          <h2 className="font-headline text-lg font-bold text-primary">Minhas Escalações</h2>
+          <p className="mt-0.5 text-xs text-on-surface-variant">Confirme ou recuse os jogos em que você foi escalado</p>
         </div>
-      )}
+        <div className="p-4 sm:p-6">
+          <ArbitroEscalacoes escalacoes={escList} />
+        </div>
+      </div>
     </div>
   )
 }
