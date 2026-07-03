@@ -4,11 +4,17 @@ import FinanceiroClient, { type EscFin } from './financeiro-client'
 export default async function FinanceiroAdminPage() {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('escalacoes')
-    .select('id, valor, pago, pago_em, status, arbitro:profiles(id, nome), jogo:jogos(data, mandante, visitante, competicao:competicoes(nome))')
-    .eq('status', 'confirmada')
-    .order('pago', { ascending: true })
+  const [{ data }, { data: config }] = await Promise.all([
+    supabase
+      .from('escalacoes')
+      .select('id, valor, funcao, pago, pago_em, status, arbitro:profiles(id, nome), jogo:jogos(data, mandante, visitante, competicao:competicoes(nome))')
+      .eq('status', 'confirmada')
+      .order('pago', { ascending: true }),
+    supabase.from('configuracoes').select('chave, valor'),
+  ])
+
+  const cfg: Record<string, string> = Object.fromEntries((config ?? []).map(c => [c.chave, c.valor]))
+  const descontoPct = (Number(cfg.desconto_inss) || 0) + (Number(cfg.desconto_iss) || 0)
 
   // Normaliza joins (podem vir como objeto ou array)
   const escalacoes: EscFin[] = (data ?? []).map((e) => {
@@ -20,6 +26,7 @@ export default async function FinanceiroAdminPage() {
     return {
       id: e.id,
       valor: e.valor,
+      funcao: e.funcao ?? 'arbitro',
       pago: e.pago,
       pago_em: e.pago_em,
       arbitro_id: a?.id ?? '',
@@ -38,7 +45,7 @@ export default async function FinanceiroAdminPage() {
         <h1 className="mt-1 font-headline text-3xl font-extrabold tracking-tight text-primary">Pagamentos</h1>
         <p className="mt-1 text-sm text-on-surface-variant">A pagar e já pago por árbitro. Marque como pago ao quitar.</p>
       </div>
-      <FinanceiroClient escalacoes={escalacoes} />
+      <FinanceiroClient escalacoes={escalacoes} descontoPct={descontoPct} />
     </div>
   )
 }

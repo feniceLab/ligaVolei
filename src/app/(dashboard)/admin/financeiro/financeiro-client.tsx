@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { ChevronDown, ChevronUp, CheckCircle2, Undo2, DollarSign, Wallet } from 'lucide-react'
+import { FUNCAO_LABEL, type FuncaoArbitragem } from '@/types'
 
 export type EscFin = {
   id: string
   valor: number | null
+  funcao: FuncaoArbitragem
   pago: boolean
   pago_em: string | null
   arbitro_id: string
@@ -31,10 +33,11 @@ function brl(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-export default function FinanceiroClient({ escalacoes }: { escalacoes: EscFin[] }) {
+export default function FinanceiroClient({ escalacoes, descontoPct }: { escalacoes: EscFin[]; descontoPct: number }) {
   const router = useRouter()
   const [aberto, setAberto] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const liq = (v: number) => v * (1 - descontoPct / 100)
 
   // Agrupa por árbitro
   const mapa = new Map<string, Grupo>()
@@ -87,12 +90,14 @@ export default function FinanceiroClient({ escalacoes }: { escalacoes: EscFin[] 
             <Wallet className="h-4 w-4 text-brand-orange-deep" /> Total a pagar
           </p>
           <p className="mt-3 font-headline text-3xl font-extrabold tracking-tight text-brand-orange-deep">{brl(totalAReceber)}</p>
+          {descontoPct > 0 && <p className="mt-1 text-xs text-on-surface-variant">líquido ≈ {brl(liq(totalAReceber))} (−{descontoPct}%)</p>}
         </div>
         <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-editorial">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             <CheckCircle2 className="h-4 w-4 text-green-600" /> Já pago
           </p>
           <p className="mt-3 font-headline text-3xl font-extrabold tracking-tight text-green-700">{brl(totalPago)}</p>
+          {descontoPct > 0 && totalPago > 0 && <p className="mt-1 text-xs text-on-surface-variant">líquido ≈ {brl(liq(totalPago))}</p>}
         </div>
       </div>
 
@@ -135,13 +140,19 @@ export default function FinanceiroClient({ escalacoes }: { escalacoes: EscFin[] 
                   {g.itens.map((i) => (
                     <div key={i.id} className="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/10 bg-surface px-4 py-2.5">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-on-surface">{i.mandante} × {i.visitante}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-medium text-on-surface">{i.mandante} × {i.visitante}</p>
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">{FUNCAO_LABEL[i.funcao ?? 'arbitro']}</span>
+                        </div>
                         <p className="text-xs text-on-surface-variant">
                           {i.data ? new Date(i.data + 'T00:00:00').toLocaleDateString('pt-BR') : ''} · {i.competicao}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className={`text-sm font-bold ${i.pago ? 'text-green-700' : 'text-brand-orange-deep'}`}>{brl(Number(i.valor ?? 0))}</span>
+                        <span className="text-right">
+                          <span className={`block text-sm font-bold ${i.pago ? 'text-green-700' : 'text-brand-orange-deep'}`}>{brl(Number(i.valor ?? 0))}</span>
+                          {descontoPct > 0 && <span className="block text-[10px] text-on-surface-variant">líq. {brl(liq(Number(i.valor ?? 0)))}</span>}
+                        </span>
                         {i.pago ? (
                           <Button size="sm" variant="ghost" className="h-7 text-xs text-on-surface-variant" disabled={loading} onClick={() => pagar([i.id], false)}>
                             <Undo2 className="mr-1 h-3 w-3" /> Reverter
