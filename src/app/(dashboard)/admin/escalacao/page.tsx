@@ -8,7 +8,7 @@ export default async function EscalacaoPage() {
 
   const [{ data: jogos }, { data: arbitros }] = await Promise.all([
     supabase.from('jogos')
-      .select('*, competicao:competicoes(nome), escalacoes(id, status, arbitro:profiles(id, nome))')
+      .select('*, competicao:competicoes(nome), escalacoes(id, status, funcao, arbitro:profiles(id, nome))')
       .gte('data', hoje)
       .neq('status', 'cancelado')
       .order('data', { ascending: true })

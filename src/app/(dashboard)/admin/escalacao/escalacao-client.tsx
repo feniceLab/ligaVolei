@@ -6,11 +6,14 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp, TrendingUp, AlertTriangle } from 'lucide-react'
-import type { Jogo, Disponibilidade } from '@/types'
+import type { Jogo, Disponibilidade, FuncaoArbitragem } from '@/types'
+import { FUNCAO_LABEL } from '@/types'
 import { scoreCor, type ScoreResult } from '@/lib/score'
 
+const FUNCOES: FuncaoArbitragem[] = ['arbitro', 'juiz_linha', 'apontador', 'delegado']
+
 type ArbitroResumo = { id: string; nome: string; categoria: string | null; valor_por_jogo: number }
-type EscalacaoResumo = { id: string; status?: string; arbitro: { id: string; nome: string } | null }
+type EscalacaoResumo = { id: string; status?: string; funcao?: string; arbitro: { id: string; nome: string } | null }
 type JogoComEscalacoes = Jogo & { escalacoes: EscalacaoResumo[] }
 
 interface Props {
@@ -43,6 +46,23 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
   const router = useRouter()
   const [expandido, setExpandido] = useState<string | null>(jogos[0]?.id ?? null)
   const [loading, setLoading] = useState<string | null>(null)
+  // função escolhida por candidato (default: árbitro)
+  const [funcaoSel, setFuncaoSel] = useState<Record<string, FuncaoArbitragem>>({})
+  const funcaoDe = (id: string) => funcaoSel[id] ?? 'arbitro'
+
+  function FuncSelect({ id }: { id: string }) {
+    return (
+      <select
+        value={funcaoDe(id)}
+        onChange={e => setFuncaoSel(s => ({ ...s, [id]: e.target.value as FuncaoArbitragem }))}
+        onClick={e => e.stopPropagation()}
+        className="rounded-lg border border-outline-variant/30 bg-surface px-2 py-1.5 text-xs font-medium text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
+        title="Função no jogo"
+      >
+        {FUNCOES.map(f => <option key={f} value={f}>{FUNCAO_LABEL[f]}</option>)}
+      </select>
+    )
+  }
 
   // Map: jogo_id -> Set<arbitro_id disponivel>
   const dispMap = new Map<string, Set<string>>()
@@ -64,6 +84,7 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
 
   async function escalar(jogoId: string, arbitroId: string) {
     setLoading(arbitroId)
+    const funcao = funcaoDe(arbitroId)
 
     // Validação de conflito de horário
     const jogoAlvo = jogos.find(j => j.id === jogoId)
@@ -85,7 +106,7 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
     const res = await fetch('/api/escalacao/escalar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jogo_id: jogoId, arbitro_id: arbitroId }),
+      body: JSON.stringify({ jogo_id: jogoId, arbitro_id: arbitroId, funcao }),
     })
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
@@ -166,9 +187,12 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
                           : { txt: 'Aguardando', cls: 'bg-brand-orange/15 text-brand-orange-deep' }
                         return (
                           <div key={esc.id} className="flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface px-3 py-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                               <span className="text-sm font-medium text-on-surface">{esc.arbitro?.nome}</span>
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                {FUNCAO_LABEL[(esc.funcao as FuncaoArbitragem) ?? 'arbitro']}
+                              </span>
                               <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badge.cls}`}>{badge.txt}</span>
                             </div>
                             <Button
@@ -199,14 +223,17 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
                             </div>
                             <Selo id={a.id} />
                           </div>
-                          <Button
-                            size="sm" variant="outline"
-                            disabled={loading === a.id}
-                            onClick={() => escalar(jogo.id, a.id)}
-                          >
-                            <UserPlus className="h-3 w-3 mr-1" />
-                            {loading === a.id ? '...' : 'Escalar'}
-                          </Button>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <FuncSelect id={a.id} />
+                            <Button
+                              size="sm" variant="outline"
+                              disabled={loading === a.id}
+                              onClick={() => escalar(jogo.id, a.id)}
+                            >
+                              <UserPlus className="h-3 w-3 mr-1" />
+                              {loading === a.id ? '...' : 'Escalar'}
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -225,9 +252,12 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
                             <span className="text-sm font-medium text-on-surface">{a.nome}</span>
                             <Selo id={a.id} />
                           </div>
-                          <Button size="sm" variant="ghost" onClick={() => escalar(jogo.id, a.id)}>
-                            <UserPlus className="h-3 w-3 mr-1" /> Forçar
-                          </Button>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <FuncSelect id={a.id} />
+                            <Button size="sm" variant="ghost" disabled={loading === a.id} onClick={() => escalar(jogo.id, a.id)}>
+                              <UserPlus className="h-3 w-3 mr-1" /> Forçar
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

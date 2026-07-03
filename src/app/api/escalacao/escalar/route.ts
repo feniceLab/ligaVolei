@@ -12,8 +12,11 @@ export async function POST(request: Request) {
   const { data: me } = await supabase.from('profiles').select('role').eq('user_id', user.id).single()
   if (me?.role !== 'admin') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
-  const { jogo_id, arbitro_id } = await request.json()
+  const { jogo_id, arbitro_id, funcao: funcaoRaw } = await request.json()
   if (!jogo_id || !arbitro_id) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
+
+  const FUNCOES = ['arbitro', 'juiz_linha', 'apontador', 'delegado']
+  const funcao: string = FUNCOES.includes(funcaoRaw) ? funcaoRaw : 'arbitro'
 
   const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,26 +24,42 @@ export async function POST(request: Request) {
   )
 
   const [{ data: jogo }, { data: arbitro }] = await Promise.all([
-    admin.from('jogos').select('id, competicao_id, arbitros_necessarios, data, horario, mandante, visitante, competicao:competicoes(nome)').eq('id', jogo_id).single(),
+    admin.from('jogos').select('id, competicao_id, arbitros_necessarios, data, horario, mandante, visitante, competicao:competicoes(nome, regime, categoria_etaria)').eq('id', jogo_id).single(),
     admin.from('profiles').select('id, nome, categoria, user_id').eq('id', arbitro_id).single(),
   ])
   if (!jogo || !arbitro) return NextResponse.json({ error: 'Jogo ou árbitro inexistente' }, { status: 404 })
 
-  // valor = tabela do campeonato p/ a categoria do árbitro (fallback: categoria 'PADRAO')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const comp: any = Array.isArray(jogo.competicao) ? jogo.competicao[0] : jogo.competicao
+  const regime: string = comp?.regime ?? 'por_jogo'
+  const catEtaria: string = comp?.categoria_etaria ?? 'Adulto'
+  // delegado tem valor único (categoria 'Único'); demais funções usam a categoria do árbitro
+  const catArbitro = funcao === 'delegado' ? 'Único' : (arbitro.categoria ?? '')
+
+  // valor congelado conforme o regime da competição
   let valor: number | null = null
-  const { data: vrows } = await admin
-    .from('competicao_valores')
-    .select('categoria, valor')
-    .eq('competicao_id', jogo.competicao_id)
-  if (vrows?.length) {
-    const exato = vrows.find(v => v.categoria === arbitro.categoria)
-    const padrao = vrows.find(v => v.categoria === 'PADRAO')
-    valor = (exato ?? padrao)?.valor ?? null
+  if (regime === 'por_etapa') {
+    const { data: v } = await admin
+      .from('valores_etapa')
+      .select('valor')
+      .eq('categoria_etaria', catEtaria)
+      .eq('categoria_arbitro', catArbitro)
+      .maybeSingle()
+    valor = v?.valor ?? null
+  } else {
+    const { data: v } = await admin
+      .from('valores_funcao')
+      .select('valor')
+      .eq('categoria_etaria', catEtaria)
+      .eq('funcao', funcao)
+      .eq('categoria_arbitro', catArbitro)
+      .maybeSingle()
+    valor = v?.valor ?? null
   }
 
   const { data: novaEsc, error: insErr } = await admin
     .from('escalacoes')
-    .insert({ jogo_id, arbitro_id, status: 'pendente', valor, notificado: true })
+    .insert({ jogo_id, arbitro_id, funcao, status: 'pendente', valor, notificado: true })
     .select('id')
     .single()
   if (insErr) return NextResponse.json({ error: insErr.message }, { status: 400 })
