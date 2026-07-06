@@ -110,12 +110,20 @@ export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
                   className={`rounded-xl border border-outline-variant/10 bg-surface p-4 transition-colors hover:bg-surface-container-high ${!a.ativo ? 'opacity-60' : ''}`}
                 >
                   <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Link href={`/admin/arbitros/${a.id}`} className="font-bold text-on-surface transition-colors hover:text-primary hover:underline underline-offset-4">{a.nome}</Link>
-                        {a.categoria && (
-                          <span className="mt-1 block w-fit rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">{a.categoria}</span>
-                        )}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <Link href={`/admin/arbitros/${a.id}`} className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container-high text-lg font-bold text-primary">
+                          {a.foto_url
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={a.foto_url} alt={a.nome} className="h-full w-full object-cover" />
+                            : (a.nome?.[0] ?? '?')}
+                        </Link>
+                        <div className="min-w-0">
+                          <Link href={`/admin/arbitros/${a.id}`} className="font-bold text-on-surface transition-colors hover:text-primary hover:underline underline-offset-4">{a.nome}</Link>
+                          {a.categoria && (
+                            <span className="mt-1 block w-fit rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">{a.categoria}</span>
+                          )}
+                        </div>
                       </div>
                       <span
                         className={
