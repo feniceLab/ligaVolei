@@ -14,10 +14,12 @@ import {
 } from 'lucide-react'
 import type { Profile, ArbitroDocumento, FuncaoArbitragem } from '@/types'
 import { FUNCAO_LABEL } from '@/types'
+import CalendarioGrade, { type JogoCal } from '@/components/calendario-grade'
+import { CalendarDays } from 'lucide-react'
 
 export type EscalacaoFicha = {
   id: string; funcao: FuncaoArbitragem; status: string; valor: number | null
-  pago: boolean; pago_em: string | null; escalado_em: string; respondido_em: string | null
+  pago: boolean; pago_em: string | null; faltou: boolean; escalado_em: string; respondido_em: string | null
   motivo_recusa: string | null; data: string; mandante: string; visitante: string; competicao: string
 }
 export type EventoFicha = {
@@ -39,9 +41,12 @@ interface Props {
   eventos: EventoFicha[]
   documentos: ArbitroDocumento[]
   metrics: Metrics
+  jogosCal: JogoCal[]
+  dispInicial: Record<string, boolean>
+  escaladoIds: string[]
 }
 
-export default function FichaClient({ arbitro, escalacoes, eventos, documentos, metrics }: Props) {
+export default function FichaClient({ arbitro, escalacoes, eventos, documentos, metrics, jogosCal, dispInicial, escaladoIds }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [tab, setTab] = useState<'dados' | 'historico' | 'pagamentos' | 'metricas'>('dados')
@@ -121,6 +126,13 @@ export default function FichaClient({ arbitro, escalacoes, eventos, documentos, 
     const { error } = await supabase.from('arbitro_documentos').delete().eq('id', doc.id)
     if (error) return toast.error('Erro ao remover')
     toast.success('Documento removido')
+    router.refresh()
+  }
+
+  async function marcarFalta(id: string, faltou: boolean) {
+    const { error } = await supabase.from('escalacoes').update({ faltou }).eq('id', id)
+    if (error) return toast.error('Erro ao registrar falta')
+    toast.success(faltou ? 'Falta registrada (afeta a nota)' : 'Falta removida')
     router.refresh()
   }
 
@@ -345,6 +357,11 @@ export default function FichaClient({ arbitro, escalacoes, eventos, documentos, 
                       {metrics.descontoPct > 0 && <span className="block text-[10px] text-on-surface-variant">líq. {brl(Number(e.valor ?? 0) * (1 - metrics.descontoPct / 100))}</span>}
                     </span>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${e.pago ? 'bg-green-600/10 text-green-700' : 'bg-brand-orange/15 text-brand-orange-deep'}`}>{e.pago ? 'Pago' : 'A receber'}</span>
+                    {e.faltou ? (
+                      <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] font-bold text-destructive" onClick={() => marcarFalta(e.id, false)} title="Remover falta">Faltou ✕</Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] text-on-surface-variant/50 hover:text-destructive" onClick={() => marcarFalta(e.id, true)} title="Confirmou e não foi? marca falta (afeta a nota)">faltou?</Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -364,6 +381,16 @@ export default function FichaClient({ arbitro, escalacoes, eventos, documentos, 
           <Kpi titulo="Recusas" valor={String(metrics.recusadas)} sub="jogos negados" />
         </div>
       )}
+
+      {/* CALENDÁRIO DE DISPONIBILIDADE (sempre no fim da ficha) */}
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-brand-orange-deep" />
+          <h2 className="font-headline text-lg font-bold text-primary">Disponibilidade</h2>
+        </div>
+        <p className="-mt-1 text-xs text-on-surface-variant">Jogos agendados nos seus dias. Marque em quais o árbitro tem disponibilidade para apitar.</p>
+        <CalendarioGrade jogos={jogosCal} dispInicial={dispInicial} escaladoIds={escaladoIds} arbitroId={arbitro.id} editable />
+      </div>
     </div>
   )
 }

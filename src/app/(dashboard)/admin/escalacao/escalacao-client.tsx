@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp, TrendingUp, AlertTriangle } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, UserPlus, Trash2, ChevronDown, ChevronUp, Star, AlertTriangle } from 'lucide-react'
 import type { Jogo, Disponibilidade, FuncaoArbitragem } from '@/types'
 import { FUNCAO_LABEL } from '@/types'
-import { scoreCor, type ScoreResult } from '@/lib/score'
+import { notaCor, type NotaResult } from '@/lib/score'
 
 const FUNCOES: FuncaoArbitragem[] = ['arbitro', 'juiz_linha', 'apontador', 'delegado']
 
@@ -20,21 +20,25 @@ interface Props {
   jogos: JogoComEscalacoes[]
   arbitros: ArbitroResumo[]
   disponibilidades: Pick<Disponibilidade, 'jogo_id' | 'arbitro_id' | 'disponivel'>[]
-  scores: Record<string, ScoreResult>
+  scores: Record<string, NotaResult>
 }
 
 export default function EscalacaoClient({ jogos, arbitros, disponibilidades, scores }: Props) {
-  const scoreDe = (id: string) => scores[id]?.score ?? 60
+  const scoreDe = (id: string) => scores[id]?.nota ?? 60
   const porScore = (a: ArbitroResumo, b: ArbitroResumo) => scoreDe(b.id) - scoreDe(a.id)
 
   function Selo({ id }: { id: string }) {
     const s = scores[id]
     if (!s) return null
+    const motivos = s.motivos.length ? s.motivos.map(m => `${m.txt} (${m.delta >= 0 ? '+' : ''}${m.delta})`).join('\n') : 'Sem histórico ainda'
     return (
-      <span className="flex shrink-0 items-center gap-1">
-        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${scoreCor(s.score)}`} title="Score de confiabilidade">
-          <TrendingUp size={10} />{s.score}
+      <span className="flex shrink-0 items-center gap-1" title={`Nota ${s.nota}/100${s.novo ? ' (novo)' : ''}\n${motivos}`}>
+        <span className="inline-flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map(n => (
+            <Star key={n} size={11} className={n <= s.estrelas ? 'fill-brand-orange text-brand-orange' : 'text-outline-variant/40'} />
+          ))}
         </span>
+        <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${notaCor(s.nota)}`}>{s.nota}</span>
         {s.cherry && (
           <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive" title="Tende a recusar jogos de valor baixo">
             <AlertTriangle size={10} />só jogo grande

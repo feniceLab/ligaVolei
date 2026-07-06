@@ -13,16 +13,28 @@ export default async function FichaArbitroPage({ params }: { params: Promise<{ i
     .from('profiles').select('*').eq('id', id).eq('role', 'arbitro').single()
   if (!arbitro) notFound()
 
-  const [{ data: escs }, { data: eventos }, { data: docs }, { data: config }] = await Promise.all([
+  const hoje = new Date().toISOString().slice(0, 10)
+  const [{ data: escs }, { data: eventos }, { data: docs }, { data: config }, { data: jogosFut }, { data: disps }] = await Promise.all([
     supabase.from('escalacoes')
-      .select('id, funcao, status, valor, pago, pago_em, escalado_em, respondido_em, motivo_recusa, jogo:jogos(data, mandante, visitante, competicao:competicoes(nome))')
+      .select('id, jogo_id, funcao, status, valor, pago, pago_em, faltou, escalado_em, respondido_em, motivo_recusa, jogo:jogos(data, mandante, visitante, competicao:competicoes(nome))')
       .eq('arbitro_id', id).order('escalado_em', { ascending: false }),
     supabase.from('escalacao_eventos')
       .select('id, acao, valor, motivo, criado_em, jogo:jogos(mandante, visitante, data)')
       .eq('arbitro_id', id).order('criado_em', { ascending: false }).limit(120),
     supabase.from('arbitro_documentos').select('*').eq('arbitro_id', id).order('criado_em', { ascending: false }),
     supabase.from('configuracoes').select('chave, valor'),
+    supabase.from('jogos')
+      .select('id, data, horario, mandante, visitante, local, competicao:competicoes(nome)')
+      .gte('data', hoje).neq('status', 'cancelado').order('data', { ascending: true }).order('horario', { ascending: true }),
+    supabase.from('disponibilidades').select('jogo_id, disponivel').eq('arbitro_id', id),
   ])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const jogosCal = (jogosFut ?? []).map((j: any) => {
+    const c = Array.isArray(j.competicao) ? j.competicao[0] : j.competicao
+    return { id: j.id, data: j.data, horario: j.horario, mandante: j.mandante, visitante: j.visitante, local: j.local, competicao_nome: c?.nome ?? '' }
+  })
+  const dispInicial: Record<string, boolean> = Object.fromEntries((disps ?? []).map(d => [d.jogo_id, d.disponivel]))
 
   // normaliza joins aninhados
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +43,7 @@ export default async function FichaArbitroPage({ params }: { params: Promise<{ i
     const comp = j?.competicao
     return {
       id: e.id, funcao: e.funcao ?? 'arbitro', status: e.status ?? 'pendente',
-      valor: e.valor, pago: e.pago, pago_em: e.pago_em, escalado_em: e.escalado_em,
+      valor: e.valor, pago: e.pago, pago_em: e.pago_em, faltou: e.faltou ?? false, escalado_em: e.escalado_em,
       respondido_em: e.respondido_em, motivo_recusa: e.motivo_recusa,
       data: j?.data ?? '', mandante: j?.mandante ?? '', visitante: j?.visitante ?? '',
       competicao: (Array.isArray(comp) ? comp[0]?.nome : comp?.nome) ?? '',
@@ -77,6 +89,10 @@ export default async function FichaArbitroPage({ params }: { params: Promise<{ i
         eventos={eventosFicha}
         documentos={(docs ?? []) as ArbitroDocumento[]}
         metrics={metrics}
+        jogosCal={jogosCal}
+        dispInicial={dispInicial}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        escaladoIds={(escs ?? []).filter((e: any) => e.status !== 'recusada' && e.status !== 'cancelada').map((e: any) => e.jogo_id).filter(Boolean)}
       />
     </div>
   )

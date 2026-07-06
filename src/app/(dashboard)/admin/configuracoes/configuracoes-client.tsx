@@ -6,7 +6,17 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Save, DollarSign, CalendarClock, SlidersHorizontal, Info } from 'lucide-react'
+import { Save, DollarSign, CalendarClock, SlidersHorizontal, Info, Star } from 'lucide-react'
+
+const PESO_CAMPOS = [
+  { k: 'nota_peso_aceite', label: 'Pontos por aceite (taxa)', def: '40' },
+  { k: 'nota_bonus_disp', label: 'Bônus disponibilidade', def: '15' },
+  { k: 'nota_bonus_eng', label: 'Bônus jogos apitados', def: '15' },
+  { k: 'nota_base', label: 'Base (neutro)', def: '30' },
+  { k: 'nota_pen_flip', label: 'Penalidade por furada', def: '8' },
+  { k: 'nota_pen_recusa', label: 'Penalidade por recusa', def: '4' },
+  { k: 'nota_pen_falta', label: 'Penalidade por falta', def: '12' },
+]
 import type { ValorFuncao, ValorEtapa, FuncaoArbitragem } from '@/types'
 import { FUNCAO_LABEL } from '@/types'
 
@@ -28,7 +38,7 @@ const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', curren
 
 export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, config, competicoes, catsEtarias }: Props) {
   const router = useRouter()
-  const [tab, setTab] = useState<'jogo' | 'etapa' | 'regime'>('jogo')
+  const [tab, setTab] = useState<'jogo' | 'etapa' | 'regime' | 'nota'>('jogo')
   const [catEtaria, setCatEtaria] = useState(catsEtarias[0] ?? 'Adulto')
   const [saving, setSaving] = useState(false)
 
@@ -58,6 +68,8 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
   const [iss, setIss] = useState(config.desconto_iss ?? '2')
   const [dia1, setDia1] = useState(config.pgto_1a_quinzena ?? '15')
   const [dia2, setDia2] = useState(config.pgto_2a_quinzena ?? '30/31')
+  const [pesos, setPesos] = useState<Record<string, string>>(() =>
+    Object.fromEntries(PESO_CAMPOS.map(c => [c.k, config[c.k] ?? c.def])))
 
   useEffect(() => {
     setDraftFuncao(buildFuncao(catEtaria))
@@ -110,6 +122,17 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
     router.refresh()
   }
 
+  async function salvarPesos() {
+    setSaving(true)
+    const supabase = createClient()
+    const rows = PESO_CAMPOS.map(c => ({ chave: c.k, valor: String(pesos[c.k] ?? c.def) }))
+    const { error } = await supabase.from('configuracoes').upsert(rows, { onConflict: 'chave' })
+    setSaving(false)
+    if (error) return toast.error('Erro ao salvar: ' + error.message)
+    toast.success('Pesos da nota salvos!')
+    router.refresh()
+  }
+
   async function mudarCompeticao(id: string, campo: 'regime' | 'categoria_etaria', valor: string) {
     const supabase = createClient()
     const { error } = await supabase.from('competicoes').update({ [campo]: valor }).eq('id', id)
@@ -122,6 +145,7 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
     { id: 'jogo' as const, label: 'Valores por jogo', icon: DollarSign },
     { id: 'etapa' as const, label: 'Valores por etapa', icon: CalendarClock },
     { id: 'regime' as const, label: 'Regime das competições', icon: SlidersHorizontal },
+    { id: 'nota' as const, label: 'Nota de confiabilidade', icon: Star },
   ]
 
   return (
@@ -146,7 +170,7 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
       </div>
 
       {/* Seletor de categoria etária (abas de valores) */}
-      {tab !== 'regime' && (
+      {(tab === 'jogo' || tab === 'etapa') && (
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Categoria etária</span>
           <select
@@ -314,6 +338,27 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ABA 4 — Pesos da nota de confiabilidade */}
+      {tab === 'nota' && (
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-editorial sm:p-6">
+            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Pesos da nota</p>
+            <p className="mb-4 text-[11px] text-on-surface-variant">A nota (0–100 + estrelas) é interna e <strong>só você vê</strong>. Ela sobe com aceitar/disponibilizar/apitar e desce com recusa, e principalmente <strong>furada</strong> (marcou e desmarcou) e <strong>falta</strong> (confirmou e não foi). Ajuste o peso de cada fator:</p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {PESO_CAMPOS.map(c => (
+                <label key={c.k} className="space-y-1">
+                  <span className="text-[11px] font-bold text-on-surface-variant">{c.label}</span>
+                  <Input type="number" min="0" step="1" value={pesos[c.k] ?? ''} onChange={e => setPesos(p => ({ ...p, [c.k]: e.target.value }))} />
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={salvarPesos} disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? 'Salvando...' : 'Salvar pesos'}</Button>
+          </div>
         </div>
       )}
 

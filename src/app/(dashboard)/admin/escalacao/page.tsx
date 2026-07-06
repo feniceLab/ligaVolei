@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import EscalacaoClient from './escalacao-client'
-import { scoreArbitro, type ArbitroStats, type ScoreResult } from '@/lib/score'
+import { notaArbitro, pesosDeConfig, type ArbitroStats, type NotaResult } from '@/lib/score'
 
 export default async function EscalacaoPage() {
   const supabase = await createClient()
@@ -26,11 +26,15 @@ export default async function EscalacaoPage() {
     ? await supabase.from('disponibilidades').select('arbitro_id, jogo_id, disponivel').in('jogo_id', jogoIds)
     : { data: [] }
 
-  // Score de confiabilidade por árbitro (advisory)
-  const { data: stats } = await supabase.from('v_arbitro_stats').select('*')
-  const scores: Record<string, ScoreResult> = {}
+  // Nota de confiabilidade por árbitro (advisory, admin-only) com pesos calibráveis
+  const [{ data: stats }, { data: config }] = await Promise.all([
+    supabase.from('v_arbitro_stats').select('*'),
+    supabase.from('configuracoes').select('chave, valor'),
+  ])
+  const pesos = pesosDeConfig(Object.fromEntries((config ?? []).map(c => [c.chave, c.valor])))
+  const scores: Record<string, NotaResult> = {}
   for (const s of (stats ?? []) as ArbitroStats[]) {
-    scores[s.arbitro_id] = scoreArbitro(s)
+    scores[s.arbitro_id] = notaArbitro(s, pesos)
   }
 
   return (

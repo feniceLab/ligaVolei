@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import CalendarioClient from './calendario-client'
+import CalendarioGrade from '@/components/calendario-grade'
 
 export default async function CalendarioPage() {
   const supabase = await createClient()
@@ -36,11 +36,16 @@ export default async function CalendarioPage() {
         <h1 className="mt-1 font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-primary">Calendário</h1>
         <p className="mt-1 text-sm text-on-surface-variant">Informe sua disponibilidade para cada jogo</p>
       </div>
-      <CalendarioClient
-        jogos={jogos ?? []}
-        disponibilidades={minhasDisp ?? []}
-        escalacoes={minhasEsc ?? []}
+      <CalendarioGrade
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        jogos={(jogos ?? []).map((j: any) => {
+          const c = Array.isArray(j.competicao) ? j.competicao[0] : j.competicao
+          return { id: j.id, data: j.data, horario: j.horario, mandante: j.mandante, visitante: j.visitante, local: j.local, competicao_nome: c?.nome ?? '' }
+        })}
+        dispInicial={Object.fromEntries((minhasDisp ?? []).map(d => [d.jogo_id, d.disponivel]))}
+        escaladoIds={(minhasEsc ?? []).map(e => e.jogo_id)}
         arbitroId={profile?.id ?? ''}
+        editable
       />
     </div>
   )
