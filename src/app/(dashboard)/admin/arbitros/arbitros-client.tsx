@@ -13,6 +13,9 @@ import { Plus, Pencil, UserX, UserCheck, Phone } from 'lucide-react'
 import type { Profile } from '@/types'
 import { useRouter } from 'next/navigation'
 
+// categorias oficiais — devem casar com as tabelas de valores (valores_funcao/valores_etapa)
+const CATEGORIAS = ['Internacional', 'Especial', 'Nacional', 'Aspirante a Nacional', 'Regional', 'Iniciante']
+
 export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -170,11 +173,18 @@ export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Categoria</Label>
-                <Input value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} placeholder="Ex: A1, B2..." />
+                <select
+                  value={form.categoria}
+                  onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value="">Selecione...</option>
+                  {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
-                <Label>Valor por Jogo (R$) *</Label>
-                <Input type="number" step="0.01" value={form.valor_por_jogo} onChange={e => setForm(f => ({ ...f, valor_por_jogo: e.target.value }))} required />
+                <Label>Valor por Jogo (R$) <span className="text-on-surface-variant/60">(legado)</span></Label>
+                <Input type="number" step="0.01" value={form.valor_por_jogo} onChange={e => setForm(f => ({ ...f, valor_por_jogo: e.target.value }))} placeholder="não usado no cálculo" />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">

@@ -281,6 +281,10 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
       {/* ABA 3 — Regime das competições */}
       {tab === 'regime' && (
         <div className="space-y-3">
+          <div className="flex items-start gap-2 rounded-xl border border-brand-orange/20 bg-brand-orange/5 px-4 py-3 text-xs text-on-surface-variant">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand-orange-deep" />
+            <p>O regime <strong>&quot;Por etapa&quot; está temporariamente desativado</strong>: o cálculo que agrupa os jogos da etapa e paga 1× ainda será implementado. Por ora todas as competições operam <strong>por jogo</strong>.</p>
+          </div>
           {competicoes.length === 0 ? (
             <p className="py-8 text-center text-sm text-on-surface-variant">Nenhuma competição cadastrada.</p>
           ) : competicoes.map(c => (
@@ -305,7 +309,7 @@ export default function ConfiguracoesClient({ valoresFuncao, valoresEtapa, confi
                   title="Regime de pagamento"
                 >
                   <option value="por_jogo">Por jogo</option>
-                  <option value="por_etapa">Por etapa</option>
+                  <option value="por_etapa" disabled>Por etapa (em breve)</option>
                 </select>
               </div>
             </div>

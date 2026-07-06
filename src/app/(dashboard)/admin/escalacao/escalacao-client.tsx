@@ -113,9 +113,11 @@ export default function EscalacaoClient({ jogos, arbitros, disponibilidades, sco
       toast.error('Erro ao escalar: ' + (d.error || res.statusText))
     } else {
       const d = await res.json().catch(() => ({}))
-      toast.success(d.valor != null
-        ? `Escalado! Valor: ${Number(d.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} — árbitro notificado.`
-        : 'Árbitro escalado e notificado!')
+      if (d.valor != null) {
+        toast.success(`Escalado! Valor: ${Number(d.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} — árbitro notificado.`)
+      } else {
+        toast.warning('Escalado, mas SEM valor definido: não há taxa cadastrada para esta categoria/função/regime. Cadastre em Configurações.', { duration: 8000 })
+      }
     }
     setLoading(null)
     router.refresh()
