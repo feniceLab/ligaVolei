@@ -9,9 +9,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { Plus, Pencil, UserX, UserCheck, Phone } from 'lucide-react'
+import { Plus, Pencil, UserX, UserCheck, Phone, Eye } from 'lucide-react'
 import type { Profile } from '@/types'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 // categorias oficiais — devem casar com as tabelas de valores (valores_funcao/valores_etapa)
 const CATEGORIAS = ['Internacional', 'Especial', 'Nacional', 'Aspirante a Nacional', 'Regional', 'Iniciante']
@@ -111,9 +112,9 @@ export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-bold text-on-surface">{a.nome}</p>
+                        <Link href={`/admin/arbitros/${a.id}`} className="font-bold text-on-surface transition-colors hover:text-primary hover:underline underline-offset-4">{a.nome}</Link>
                         {a.categoria && (
-                          <span className="mt-1 inline-block rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">{a.categoria}</span>
+                          <span className="mt-1 block w-fit rounded-full bg-surface-container-high px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">{a.categoria}</span>
                         )}
                       </div>
                       <span
@@ -131,12 +132,12 @@ export default function ArbitrosClient({ arbitros }: { arbitros: Profile[] }) {
                         <Phone className="h-3 w-3" /> {a.telefone}
                       </p>
                     )}
-                    <p className="text-sm font-bold text-brand-orange-deep">
-                      R$ {a.valor_por_jogo.toFixed(2)} / jogo
-                    </p>
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" variant="outline" className="flex-1" onClick={() => abrirEditar(a)}>
-                        <Pencil className="h-3 w-3 mr-1" /> Editar
+                      <Button asChild size="sm" className="flex-1">
+                        <Link href={`/admin/arbitros/${a.id}`}><Eye className="h-3 w-3 mr-1" /> Ver ficha</Link>
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => abrirEditar(a)} title="Edição rápida">
+                        <Pencil className="h-3 w-3" />
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => toggleAtivo(a)}>
                         {a.ativo ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}

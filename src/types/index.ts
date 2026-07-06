@@ -9,6 +9,39 @@ export interface Profile {
   valor_por_jogo: number
   ativo: boolean
   criado_em: string
+  // Ficha completa
+  cpf: string | null
+  pis: string | null
+  rg: string | null
+  rg_orgao: string | null
+  data_nascimento: string | null
+  chave_pix: string | null
+  tipo_chave_pix: 'cpf' | 'email' | 'telefone' | 'aleatoria' | null
+  banco: string | null
+  agencia: string | null
+  conta: string | null
+  cnpj: string | null
+  inscricao_municipal: string | null
+  cep: string | null
+  cidade: string | null
+  uf: string | null
+  logradouro: string | null
+  registro_federacao: string | null
+  data_filiacao: string | null
+  funcoes_habilitadas: string[] | null
+  contato_emergencia: string | null
+  tamanho_uniforme: string | null
+  observacoes: string | null
+  foto_url: string | null
+}
+
+export interface ArbitroDocumento {
+  id: string
+  arbitro_id: string
+  tipo: string
+  nome: string
+  path: string
+  criado_em: string
 }
 
 export type RegimePagamento = 'por_jogo' | 'por_etapa'
