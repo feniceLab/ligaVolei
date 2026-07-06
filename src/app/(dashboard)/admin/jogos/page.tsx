@@ -12,6 +12,16 @@ export default async function JogosPage() {
     supabase.from('competicoes').select('id, nome, categoria').eq('ativo', true).order('nome'),
   ])
 
+  // Próximos jogos no topo (futuros por data crescente), depois os já realizados (mais recentes primeiro)
+  const hoje = new Date().toISOString().slice(0, 10)
+  const jogosOrdenados = [...(jogos ?? [])].sort((a, b) => {
+    const af = a.data >= hoje ? 0 : 1
+    const bf = b.data >= hoje ? 0 : 1
+    if (af !== bf) return af - bf
+    const cmp = a.data.localeCompare(b.data) || (a.horario ?? '').localeCompare(b.horario ?? '')
+    return af === 0 ? cmp : -cmp
+  })
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -21,7 +31,7 @@ export default async function JogosPage() {
           <p className="mt-1 text-sm text-on-surface-variant">Gerencie os jogos das competições</p>
         </div>
       </div>
-      <JogosClient jogos={jogos ?? []} competicoes={competicoes ?? []} />
+      <JogosClient jogos={jogosOrdenados} competicoes={competicoes ?? []} />
     </div>
   )
 }
