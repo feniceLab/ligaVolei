@@ -8,22 +8,6 @@ async function api(path: string): Promise<any> {
   return res.json()
 }
 
-// Acha a primeira lista de objetos numa resposta aninhada (ou por chave)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function findList(o: any, key?: string): any[] {
-  if (Array.isArray(o)) {
-    if (o.length && typeof o[0] === 'object') return o
-    for (const v of o) { const r = findList(v, key); if (r.length) return r }
-    return []
-  }
-  if (o && typeof o === 'object') {
-    if (key && Array.isArray(o[key])) return o[key]
-    if (!key) for (const v of Object.values(o)) if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v
-    for (const v of Object.values(o)) { const r = findList(v, key); if (r.length) return r }
-  }
-  return []
-}
-
 export function categoriaEtaria(nome: string): string {
   const n = (nome || '').toLowerCase()
   if (/adulto/.test(n)) return 'Adulto'
@@ -82,29 +66,35 @@ export async function coletarCompeticoesEJogos(year = 2026): Promise<{ competico
       categoria: c.gender_name ?? '', categoria_etaria: categoriaEtaria(nome),
       temporada: String(year), data_inicio: di, data_fim: df,
     })
-    // travessia: phases -> phase(groups) -> group(duels)
+    // travessia: phases(results) -> phase.result.groups -> group.result.rounds[].duels
     try {
-      const phases = findList(await api(`/competitions/${c.id}/phases`))
+      const phResp = await api(`/competitions/${c.id}/phases`)
+      const phases = phResp.results ?? []
       for (const ph of phases) {
-        const pd = await api(`/competitions/phases/${ph.id}`)
-        const groups = findList(pd, 'groups')
-        for (const gr of groups) {
-          const gd = await api(`/competitions/groups/${gr.id}`)
-          const duels = findList(gd, 'duels')
-          for (const d of duels) {
-            const t = parseInicio(d.starts_at_formatted)
-            if (!t || !d.team_1_name || !d.team_2_name) continue
-            jogos.push({
-              placarsoft_id: String(d.id), competicao_psid: String(c.id),
-              mandante: d.team_1_name, visitante: d.team_2_name,
-              data: t.data, horario: t.horario,
-              local: d.space_name ?? d.address ?? '',
-              realizado: !!d.done,
-            })
+        try {
+          const pd = await api(`/competitions/phases/${ph.id}`)
+          const groups = pd.result?.groups ?? []
+          for (const gr of groups) {
+            try {
+              const gd = await api(`/competitions/groups/${gr.id}`)
+              const rounds = gd.result?.rounds ?? []
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              for (const rd of rounds) for (const d of (rd.duels ?? []) as any[]) {
+                const t = parseInicio(d.starts_at_formatted)
+                if (!t || !d.team_1_name || !d.team_2_name) continue
+                jogos.push({
+                  placarsoft_id: String(d.id), competicao_psid: String(c.id),
+                  mandante: d.team_1_name, visitante: d.team_2_name,
+                  data: t.data, horario: t.horario,
+                  local: d.space_name ?? d.address ?? '',
+                  realizado: !!d.done,
+                })
+              }
+            } catch { /* grupo sem detalhe */ }
           }
-        }
+        } catch { /* fase sem detalhe */ }
       }
-    } catch { /* competição sem chave montada ainda — ignora */ }
+    } catch { /* competição sem chave montada ainda */ }
   }
   return { competicoes, jogos }
 }
